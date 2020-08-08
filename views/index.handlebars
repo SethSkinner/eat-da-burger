@@ -1,0 +1,37 @@
+<img src="/assets/images/burger.png"/>
+<h1>Eat the Burgers</h1>
+<div class="clearfix list-wrapper">
+    <ul id="uneatenList">
+        <h2>Burgers to Devour</h2>
+    {{#each burgers}}
+        {{#unless devoured}}
+        <li class="uneaten">
+            <p>{{burger_name}}</p>
+            <button class="devour" data-id="{{id}}">
+                Devour!
+            </button>
+        </li>
+        {{/unless}}
+    {{/each}}
+    </ul>
+
+
+    <ul id="devouredList">
+        <h2>Devoured Burgers</h2>
+    {{#each burgers}}
+        {{#if devoured}}
+        <li class="devoured">
+            {{burger_name}}
+        {{/if}}
+        </li>   
+    {{/each}}
+    </ul>
+</div>
+<h2>Add a Burger</h2>
+<form class="create-form clearfix">
+
+  <div class="form-group">
+    <input type="text" id="newBurger" name="name">
+  </div>
+  <button type="submit">Submit</button>
+</form>
