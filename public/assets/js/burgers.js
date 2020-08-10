@@ -1,106 +1,60 @@
-var connection = require("../config/connection.js");
+// Make sure we wait to attach our handlers until the DOM is fully loaded.
+$(function() {
+  $(".change-devoured").on("click", function(event) {
+    var id = $(this).data("id");
+    var newDevoured = $(this).data("newdevoured");
 
-// Helper function for SQL syntax.
-// Let's say we want to pass 3 values into the mySQL query.
-// In order to write the query, we need 3 question marks.
-// The above helper function loops through and creates an array of question marks - ["?", "?", "?"] - and turns it into a string.
-// ["?", "?", "?"].toString() => "?,?,?";
-function printQuestionMarks(num) {
-  var arr = [];
+    var newBurgerState = {
+      devoured: newDevoured
+    };
 
-  for (var i = 0; i < num; i++) {
-    arr.push("?");
-  }
-
-  return arr.toString();
-}
-
-// Helper function to convert object key/value pairs to SQL syntax
-function objToSql(ob) {
-  var arr = [];
-
-  // loop through the keys and push the key/value as a string int arr
-  for (var key in ob) {
-    var value = ob[key];
-    // check to skip hidden properties
-    if (Object.hasOwnProperty.call(ob, key)) {
-      // if string with spaces, add quotations (Lana Del Grey => 'Lana Del Grey')
-      if (typeof value === "string" && value.indexOf(" ") >= 0) {
-        value = "'" + value + "'";
+    // Send the PUT request.
+    $.ajax("/api/burgers/" + id, {
+      type: "PUT",
+      data: newBurgerState
+    }).then(
+      function() {
+        console.log("changed devoured to", newDevoured);
+        // Reload the page to get the updated list
+        location.reload();
       }
-      // e.g. {name: 'Lana Del Grey'} => ["name='Lana Del Grey'"]
-      // e.g. {sleepy: true} => ["sleepy=true"]
-      arr.push(key + "=" + value);
-    }
-  }
+    );
+  });
 
-  // translate array of strings to a single comma-separated string
-  return arr.toString();
-}
+  $(".create-form").on("submit", function(event) {
+    // Make sure to preventDefault on a submit event.
+    event.preventDefault();
 
-// Object for all our SQL statement functions.
-var orm = {
-  all: function(tableInput, cb) {
-    var queryString = "SELECT * FROM " + tableInput + ";";
-    connection.query(queryString, function(err, result) {
-      if (err) {
-        throw err;
+    var newBurger = {
+      name: $("#ca").val().trim(),
+      devoured: $("[name=devoured]:checked").val().trim()
+    };
+
+    // Send the POST request.
+    $.ajax("/api/burgers", {
+      type: "POST",
+      data: newBurger
+    }).then(
+      function() {
+        console.log("created new burger");
+        // Reload the page to get the updated list
+        location.reload();
       }
-      cb(result);
-    });
-  },
-  create: function(table, cols, vals, cb) {
-    var queryString = "INSERT INTO " + table;
+    );
+  });
 
-    queryString += " (";
-    queryString += cols.toString();
-    queryString += ") ";
-    queryString += "VALUES (";
-    queryString += printQuestionMarks(vals.length);
-    queryString += ") ";
+  $(".delete-burger").on("click", function(event) {
+    var id = $(this).data("id");
 
-    console.log(queryString);
-
-    connection.query(queryString, vals, function(err, result) {
-      if (err) {
-        throw err;
+    // Send the DELETE request.
+    $.ajax("/api/burgers/" + id, {
+      type: "DELETE"
+    }).then(
+      function() {
+        console.log("deleted burger", id);
+        // Reload the page to get the updated list
+        location.reload();
       }
-
-      cb(result);
-    });
-  },
-  // An example of objColVals would be {name: panther, sleepy: true}
-  update: function(table, objColVals, condition, cb) {
-    var queryString = "UPDATE " + table;
-
-    queryString += " SET ";
-    queryString += objToSql(objColVals);
-    queryString += " WHERE ";
-    queryString += condition;
-
-    console.log(queryString);
-    connection.query(queryString, function(err, result) {
-      if (err) {
-        throw err;
-      }
-
-      cb(result);
-    });
-  },
-  delete: function(table, condition, cb) {
-    var queryString = "DELETE FROM " + table;
-    queryString += " WHERE ";
-    queryString += condition;
-
-    connection.query(queryString, function(err, result) {
-      if (err) {
-        throw err;
-      }
-
-      cb(result);
-    });
-  }
-};
-
-// Export the orm object for the model (cat.js).
-module.exports = orm;
+    );
+  });
+});
